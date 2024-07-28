@@ -1,71 +1,32 @@
 import mysql.connector
-# Database connection details (replace with your own)
-mydb = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="100M^200m@300",
-    database="mydatabase"
-)
+from mysql.connector import errorcode
 
-mycursor = mydb.cursor()
+def create_database():
+    try:
+        # Connect to MySQL server
+        connection = mysql.connector.connect(
+            host="localhost",
+            user="yourusername",
+            password="yourpassword"
+        )
+        cursor = connection.cursor()
 
-# Create a table named `customers` (if it doesn't exist)
-mycursor.execute("""
-CREATE TABLE IF NOT EXISTS customers (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) NOT NULL UNIQUE
-)
-""")
+        # Create the database
+        cursor.execute("CREATE DATABASE IF NOT EXISTS alx_book_store")
 
-print("Table created successfully!")
+        print("Database 'alx_book_store' created successfully!")
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Error: Incorrect username or password.")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Error: Database does not exist.")
+        else:
+            print(f"Error: {err}")
+    finally:
+        # Close the cursor and connection
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
-# Insert some customer data
-sql = "INSERT INTO customers (name, email) VALUES (%s, %s)"
-val = ("John Doe", "john.doe@example.com")
-mycursor.execute(sql, val)
-mydb.commit()
-
-print(mycursor.rowcount, "record(s) inserted.")
-
-val = ("Jane Smith", "jane.smith@example.com")
-mycursor.execute(sql, val)
-mydb.commit()
-
-print(mycursor.rowcount, "record(s) inserted.")
-
-# Read all customer data
-mycursor.execute("SELECT * FROM customers")
-myresult = mycursor.fetchall()
-
-print("Customers:")
-for row in myresult:
-  print(row)
-
-# Update a customer's email
-sql = "UPDATE customers SET email = %s WHERE id = %s"
-val = ("updated.email@example.com", 1)
-mycursor.execute(sql, val)
-mydb.commit()
-
-print(mycursor.rowcount, "record(s) updated.")
-
-# Read the updated customer data
-mycursor.execute("SELECT * FROM customers WHERE id = 1")
-myresult = mycursor.fetchone()
-
-print("Updated customer:")
-print(myresult)
-
-# Delete a customer
-sql = "DELETE FROM customers WHERE id = 2"
-mycursor.execute(sql)
-mydb.commit()
-
-print(mycursor.rowcount, "record(s) deleted.")
-
-# Close connections
-mycursor.close()
-mydb.close()
-
-print("Database connection closed.")
+if __name__ == "__main__":
+    create_database()
